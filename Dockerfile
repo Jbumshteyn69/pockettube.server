@@ -1,1 +1,15 @@
-FROM python:3.11-slimRUN apt-get update && apt-get install -y curl gnupg ffmpeg nodejs && \ curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg && \ echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ bookworm main" | tee /etc/apt/sources.list.d/cloudflare-client.list && \ apt-get update && apt-get install -y cloudflare-warp && rm -rf /var/lib/apt/lists/*RUN pip install --no-cache-dir fastapi uvicorn "yt-dlp[default]"WORKDIR /appCOPY server.py .CMD warp-svc & sleep 3 && warp-cli --accept-tos registration new && warp-cli --accept-tos mode proxy && warp-cli --accept-tos connect && python3 server.py
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y curl gnupg ffmpeg nodejs && \
+    curl -fsSL https://pkg.cloudflareclient.com/pubkey.gpg | gpg --yes --dearmor --output /usr/share/keyrings/cloudflare-warp-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/cloudflare-warp-archive-keyring.gpg] https://pkg.cloudflareclient.com/ bookworm main" | tee /etc/apt/sources.list.d/cloudflare-client.list && \
+    apt-get update && apt-get install -y cloudflare-warp && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir fastapi uvicorn "yt-dlp[default]"
+
+WORKDIR /app
+
+COPY server.py .
+
+CMD warp-svc & sleep 3 && warp-cli --accept-tos registration new && warp-cli --accept-tos mode proxy && warp-cli --accept-tos connect && python3 server.py
